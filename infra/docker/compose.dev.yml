@@ -1,0 +1,50 @@
+version: "3.9"
+services:
+  web:
+    build:
+      context: ../../apps/web
+      dockerfile: Dockerfile
+    env_file: ../../.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+  api:
+    build:
+      context: ../../apps/api
+      dockerfile: Dockerfile
+    env_file: ../../.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+      - weaviate
+  workers:
+    build:
+      context: ../../apps/workers
+      dockerfile: Dockerfile
+    env_file: ../../.env
+    depends_on:
+      - api
+      - postgres
+      - redis
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: autobrain
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5432:5432"
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+  weaviate:
+    image: semitechnologies/weaviate:1.25.6
+    environment:
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+    ports:
+      - "8080:8080"
